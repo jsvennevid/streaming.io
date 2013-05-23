@@ -1,6 +1,6 @@
 {
 	"name": "streaming.io",
-	"version": "0.0.8",
+	"version": "0.1.0",
 
 	"repository": {
 		"type": "git",
@@ -10,6 +10,7 @@
 	"dependencies": {
 		"streaming.io-client": "git+https://github.com/jsvennevid/streaming.io-client.git#v0.0.8",
 		"underscore": ">= 1.4.4",
-		"node-uuid": ">= 1.4.0"
+		"node-uuid": ">= 1.4.0",
+		"amqp": ">= 0.1.6"
 	}
 }
