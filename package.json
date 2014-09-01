@@ -1,6 +1,6 @@
 {
 	"name": "streaming.io",
-	"version": "0.3.1",
+	"version": "0.3.2",
 
 	"repository": {
 		"type": "git",
@@ -12,6 +12,7 @@
 		"underscore": "== 1.4.4",
 		"node-uuid": ">= 1.4.0",
 		"amqp": ">= 0.1.6",
-        "redis": ">= 0.8.6"
+        "redis": ">= 0.8.6",
+        "debug": "== 2.0.0"
 	}
 }
