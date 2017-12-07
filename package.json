@@ -1,6 +1,6 @@
 {
 	"name": "streaming.io",
-	"version": "0.6.0",
+	"version": "0.6.1",
 
 	"repository": {
 		"type": "git",
@@ -14,9 +14,5 @@
 		"redis": "== 2.7.1",
 		"debug": "== 2.6.4",
         	"async": "== 2.3.0"
-	},
-
-	"publishConfig": {
-		"registry": "https://npm.vote4dance.com/registry"
 	}
 }
