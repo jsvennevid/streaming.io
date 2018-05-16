@@ -3,8 +3,8 @@
 node_modules
 npm-debug.log
 package-lock.json
+yarn.lock
 .idea
 *.iml
 *.swp
 *.swo
-
