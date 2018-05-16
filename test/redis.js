@@ -1,8 +1,29 @@
-const { RedisRegistry } = require('..');
+const { RedisRegistry, Client } = require('..');
 
 const assert = require('assert');
 
 // TODO: use an embedded redis
+
+class TestClient extends Client {
+    constructor(sender, ) {
+        super();
+        this.sender = sender;
+    }
+
+    get address() {
+        return "127.0.0.1";
+    }
+
+    get session() {
+        return "foo";
+    }
+
+    async send(message) {
+        if (this.sender) {
+            this.sender(message);
+        }
+    }
+}
 
 async function waitOnRegistry(registry, event) {
     let commandPromise, subscriptionPromise;
@@ -67,8 +88,8 @@ describe('RedisRegistry', function () {
         const registry1 = new RedisRegistry();
         const registry2 = new RedisRegistry();
 
-        const socket1 = { id: 'foo1', emit: () => { writes++; }, handshake: { address: "foo" }, request: { session: "foo" } };
-        const socket2 = { id: 'foo2', emit: () => { writes++; }, handshake: { address: "foo" }, request: { session: "foo" } };
+        const id1 = 'foo1';
+        const id2 = 'foo2';
         const url = '/foo';
 
         await registry1.create(options);
@@ -76,10 +97,10 @@ describe('RedisRegistry', function () {
 
         await Promise.all([waitOnRegistry(registry1, 'ready'), waitOnRegistry(registry2, 'ready')]);
 
-        await registry1.addSocket(socket1);
-        await registry2.addSocket(socket2);
-        await registry1.addSubscription(socket1, url, null, undefined, {});
-        await registry2.addSubscription(socket2, url, null, undefined, {});
+        await registry1.addClient(id1, new TestClient(() => { writes++; }));
+        await registry2.addClient(id2, new TestClient(() => { writes++; }));
+        await registry1.addSubscription(id1, url, null, undefined, {});
+        await registry2.addSubscription(id2, url, null, undefined, {});
 
         await registry1.trigger(url);
 

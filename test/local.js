@@ -1,14 +1,35 @@
-const { LocalRegistry } = require('..');
+const { LocalRegistry, Client } = require('..');
 
 const assert = require('assert');
+
+class TestClient extends Client {
+    constructor(sender, ) {
+        super();
+        this.sender = sender;
+    }
+
+    get address() {
+        return "127.0.0.1";
+    }
+
+    get session() {
+        return "foo";
+    }
+
+    async send(message) {
+        if (this.sender) {
+            this.sender(message);
+        }
+    }
+}
 
 describe('LocalRegistry', function () {
     it('should invalidate url before resolving trigger', async function () {
         let writes = 0, reads = 0, invalidates = 0;
 
         const registry = new LocalRegistry();
-        const socket1 = { id: 'foo1', emit: () => { writes++; }, handshake: { address: "foo" }, request: { session: "foo" } };
-        const socket2 = { id: 'foo2', emit: () => { writes++; }, handshake: { address: "foo" }, request: { session: "foo" } };
+        const id1 = 'foo1';
+        const id2 = 'foo2';
         const url = '/foo';
 
         await registry.create({
@@ -22,10 +43,10 @@ describe('LocalRegistry', function () {
             }
         });
 
-        await registry.addSocket(socket1);
-        await registry.addSocket(socket2);
-        await registry.addSubscription(socket1, url, null, undefined, {});
-        await registry.addSubscription(socket2, url, null, undefined, {});
+        await registry.addClient(id1, new TestClient(() => { writes++; }));
+        await registry.addClient(id2, new TestClient(() => { writes++; }));
+        await registry.addSubscription(id1, url, null, undefined, {});
+        await registry.addSubscription(id2, url, null, undefined, {});
 
         await registry.trigger(url);
 
