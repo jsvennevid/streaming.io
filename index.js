@@ -1,6 +1,6 @@
-const { Registry, Client } = require('./lib/registry/base');
-const { LocalRegistry } = require('./lib/registry/local');
-const { RedisRegistry } = require('./lib/registry/redis');
+const { Registry, Client } = require('./registry/base');
+const { LocalRegistry } = require('./registry/local');
+const { RedisRegistry } = require('./registry/redis');
 
 exports.Registry = Registry;
 exports.Client = Client;

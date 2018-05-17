@@ -1,6 +1,4 @@
 const debug = require('debug')('streaming.io:registry:base');
-const crypto = require('crypto');
-const { compress } = require('../compress');
 const { EventEmitter } = require('events');
 const hash = require('object-hash');
 
@@ -72,6 +70,7 @@ class Registry extends EventEmitter {
 
         this.__read = this.options.read || (async (url, key, session, info) => { throw new Error("No reader defined") });
         this.__invalidate = this.options.invalidate || (async () => {});
+        this.__compress = this.options.compress || (data => data);
     }
 
     async destroy() {}
@@ -143,7 +142,7 @@ class Registry extends EventEmitter {
             message.hash = digest;
 
             if (!remoteDigest || (digest !== remoteDigest)) {
-                message.data = compress(response);
+                message.data = this.__compress(response);
             }
 
             client.cache.set(url, digest);
@@ -202,7 +201,7 @@ class Registry extends EventEmitter {
 
         const message = {
             url: url,
-            data: compress(data),
+            data: this.__compress(data),
             hash: digest
         };
 
@@ -231,7 +230,7 @@ class Registry extends EventEmitter {
 
             const message = {
                 url: url,
-                data: compress(data),
+                data: this.__compress(data),
                 hash: digest
             };
 
