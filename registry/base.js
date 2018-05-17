@@ -68,7 +68,7 @@ class Registry extends EventEmitter {
     async create(options) {
         this.options = options || {};
 
-        this.__read = this.options.read || (async (url, key, session, info) => { throw new Error("No reader defined") });
+        this.__read = this.options.read || (async (url, key, info) => { throw new Error("No reader defined") });
         this.__invalidate = this.options.invalidate || (async () => {});
         this.__compress = this.options.compress || (data => data);
     }
@@ -196,7 +196,7 @@ class Registry extends EventEmitter {
     }
 
     async cachedTrigger(url, key) {
-        const data = await this.__read(url, key, undefined, undefined);
+        const data = await this.__read(url, key, {});
         const digest = hash(data, { encoding: 'base64' });
 
         const message = {
@@ -218,10 +218,11 @@ class Registry extends EventEmitter {
     async uncachedTrigger(url) {
         for (const client of this.subscribers(url)) {
             const info = {
+                session: client.session,
                 address: client.address
             };
 
-            const data = await this.__read(url, undefined, client.session, info);
+            const data = await this.__read(url, undefined, info);
             const digest = hash(data, { encoding: 'base64' });
 
             if (digest === client.cache.get(url)) {

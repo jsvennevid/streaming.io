@@ -89,6 +89,44 @@ describe('BaseRegistry', function () {
         assert(!Array.from(registry.subscriptions.keys()).length);
     });
 
+    it('should provide session and address for an uncached query', async function() {
+        const registry = new Registry();
+        const id = 'foo1';
+        const url = '/foo';
+
+        await registry.create({
+            read: async (url, key, info) => {
+                assert.equal(info.session, "foo", "Invalid session");
+                assert.equal(info.address, "127.0.0.1", "Bad address");
+                return { 'data': 'test' };
+            }
+        });
+
+        await registry.add(id, new TestClient);
+        await registry.subscribe(id, url, null, undefined, {});
+
+        await registry.trigger(url);
+    });
+
+    it('should provide no info for a cached query', async function() {
+        const registry = new Registry();
+        const id = 'foo1';
+        const url = '/foo';
+
+        await registry.create({
+            read: async (url, key, info) => {
+                assert.equal(info.session, undefined, "Invalid session");
+                assert.equal(info.address, undefined, "Bad address");
+                return { 'data': 'test' };
+            }
+        });
+
+        await registry.add(id, new TestClient);
+        await registry.subscribe(id, url, null, 'cache', {});
+
+        await registry.trigger(url);
+    });
+
     it('should read only once per cached query', async function () {
         let writes = 0, reads = 0;
 
@@ -98,7 +136,7 @@ describe('BaseRegistry', function () {
         const url = '/foo';
 
         await registry.create({
-            read: async (url, key, session, info) => {
+            read: async (url, key, info) => {
                 reads ++;
                 return { "data": "test" };
             }
@@ -124,7 +162,7 @@ describe('BaseRegistry', function () {
         const url = '/foo';
 
         await registry.create({
-            read: async (url, key, session, info) => {
+            read: async (url, key, info) => {
                 reads ++;
                 return { "data": "test" };
             }

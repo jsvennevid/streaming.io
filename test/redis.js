@@ -88,7 +88,7 @@ describe('RedisRegistry', function () {
                 invalidates ++;
             },
 
-            read: async (url, key, session, info) => {
+            read: async (url, key, info) => {
                 reads ++;
                 return { "data": "test" };
             }
