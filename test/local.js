@@ -43,10 +43,10 @@ describe('LocalRegistry', function () {
             }
         });
 
-        await registry.addClient(id1, new TestClient(() => { writes++; }));
-        await registry.addClient(id2, new TestClient(() => { writes++; }));
-        await registry.addSubscription(id1, url, null, undefined, {});
-        await registry.addSubscription(id2, url, null, undefined, {});
+        await registry.add(id1, new TestClient(() => { writes++; }));
+        await registry.add(id2, new TestClient(() => { writes++; }));
+        await registry.subscribe(id1, url, null, undefined, {});
+        await registry.subscribe(id2, url, null, undefined, {});
 
         await registry.trigger(url);
 

@@ -31,12 +31,12 @@ async function waitOnRegistry(registry, event) {
     switch (event) {
         case 'ready': {
             commandPromise = new Promise(resolve => {
-                registry.commandClient.on(event, () => {
+                registry.once('redis:ready', () => {
                     resolve();
                 });
             });
             subscriptionPromise = new Promise(resolve => {
-                registry.subscriptionClient.on(event, () => {
+                registry.once('redis:subscribed', () => {
                     resolve();
                 });
             });
@@ -44,7 +44,7 @@ async function waitOnRegistry(registry, event) {
         case 'message': {
             commandPromise = Promise.resolve();
             subscriptionPromise = new Promise(resolve => {
-                registry.subscriptionClient.on(event, () => {
+                registry.once('trigger', () => {
                     resolve();
                 });
             });
@@ -61,11 +61,20 @@ async function waitOnRegistry(registry, event) {
 }
 
 describe('RedisRegistry', function () {
+    let registries = [];
+
+    afterEach(async function () {
+        for (let registry of registries) {
+            await registry.destroy().catch(() => {});
+        }
+        registries = [];
+    });
+
     it('should trigger on several clients', async function () {
         let writes = 0, reads = 0, invalidates = 0;
 
         const options = {
-            prefix: 'test-',
+            prefix: 'test',
             host: 'localhost:6379',
 
             resolver: (host) => {
@@ -88,6 +97,8 @@ describe('RedisRegistry', function () {
         const registry1 = new RedisRegistry();
         const registry2 = new RedisRegistry();
 
+        registries.push(registry1, registry2);
+
         const id1 = 'foo1';
         const id2 = 'foo2';
         const url = '/foo';
@@ -97,17 +108,14 @@ describe('RedisRegistry', function () {
 
         await Promise.all([waitOnRegistry(registry1, 'ready'), waitOnRegistry(registry2, 'ready')]);
 
-        await registry1.addClient(id1, new TestClient(() => { writes++; }));
-        await registry2.addClient(id2, new TestClient(() => { writes++; }));
-        await registry1.addSubscription(id1, url, null, undefined, {});
-        await registry2.addSubscription(id2, url, null, undefined, {});
+        await registry1.add(id1, new TestClient(() => { writes++; }));
+        await registry2.add(id2, new TestClient(() => { writes++; }));
+        await registry1.subscribe(id1, url, null, undefined, {});
+        await registry2.subscribe(id2, url, null, undefined, {});
 
         await registry1.trigger(url);
 
         await Promise.all([waitOnRegistry(registry1, 'message'), waitOnRegistry(registry2, 'message')]);
-
-        await registry1.destroy();
-        await registry2.destroy();
 
         assert.equal(reads, 2, "Invalid number of reads");
         assert.equal(writes, 2, "Invalid number of writes");

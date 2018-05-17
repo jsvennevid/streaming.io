@@ -31,8 +31,8 @@ describe('BaseRegistry', function () {
 
         await registry.create();
 
-        await registry.addClient(id, new TestClient);
-        await registry.addSubscription(id, url, null, undefined, {});
+        await registry.add(id, new TestClient);
+        await registry.subscribe(id, url, null, undefined, {});
 
         assert(registry.clients.has(id));
         assert(registry.subscriptions.has(url));
@@ -46,11 +46,11 @@ describe('BaseRegistry', function () {
 
         await registry.create();
 
-        await registry.addClient(id, new TestClient);
-        await registry.addSubscription(id, url1, null, undefined, {});
-        await registry.addSubscription(id, url2, null, undefined, {});
+        await registry.add(id, new TestClient);
+        await registry.subscribe(id, url1, null, undefined, {});
+        await registry.subscribe(id, url2, null, undefined, {});
 
-        await registry.removeSubscription(id, url2);
+        await registry.unsubscribe(id, url2);
 
         assert.deepEqual([url1], Array.from(registry.subscriptions.keys()), "Subscription keys are mismatching");
         assert.deepEqual([url1], Array.from(registry.clients.get(id).subscriptions.keys()), "Client subscriptions are mismatching");
@@ -64,9 +64,9 @@ describe('BaseRegistry', function () {
 
         await registry.create();
 
-        await registry.addClient(id, new TestClient);
-        await registry.addSubscription(id, url, null, undefined, {});
-        await registry.addSubscription(id, url, null, undefined, {}).then(() => {
+        await registry.add(id, new TestClient);
+        await registry.subscribe(id, url, null, undefined, {});
+        await registry.subscribe(id, url, null, undefined, {}).then(() => {
             throw new Error("This should not happen");
         }).catch((err) => {
             assert.equal("Already subscribed", err.message);
@@ -80,10 +80,10 @@ describe('BaseRegistry', function () {
 
         await registry.create();
 
-        await registry.addClient(id, new TestClient);
-        await registry.addSubscription(id, url, null, undefined, {});
+        await registry.add(id, new TestClient);
+        await registry.subscribe(id, url, null, undefined, {});
 
-        await registry.removeClient(id);
+        await registry.remove(id);
 
         assert(!Array.from(registry.clients.keys()).length);
         assert(!Array.from(registry.subscriptions.keys()).length);
@@ -104,10 +104,10 @@ describe('BaseRegistry', function () {
             }
         });
 
-        await registry.addClient(id1, new TestClient(() => { writes++; }));
-        await registry.addClient(id2, new TestClient(() => { writes++; }));
-        await registry.addSubscription(id1, url, null, 'cache', {});
-        await registry.addSubscription(id2, url, null, 'cache', {});
+        await registry.add(id1, new TestClient(() => { writes++; }));
+        await registry.add(id2, new TestClient(() => { writes++; }));
+        await registry.subscribe(id1, url, null, 'cache', {});
+        await registry.subscribe(id2, url, null, 'cache', {});
 
         await registry.trigger(url);
 
@@ -130,10 +130,10 @@ describe('BaseRegistry', function () {
             }
         });
 
-        await registry.addClient(id1, new TestClient(() => { writes++; }));
-        await registry.addClient(id2, new TestClient(() => { writes++; }));
-        await registry.addSubscription(id1, url, null, undefined, {});
-        await registry.addSubscription(id2, url, null, undefined, {});
+        await registry.add(id1, new TestClient(() => { writes++; }));
+        await registry.add(id2, new TestClient(() => { writes++; }));
+        await registry.subscribe(id1, url, null, undefined, {});
+        await registry.subscribe(id2, url, null, undefined, {});
 
         await registry.trigger(url);
 
